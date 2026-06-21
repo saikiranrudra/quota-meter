@@ -94,3 +94,10 @@ Scaling Flask to N instances does not change the concurrency-correctness argumen
 3. **Monitor Redis ops/sec in production**; the 148,000 ops/sec ceiling measured here is hardware-dependent — re-benchmark on production instance types before relying on the same number.
 4. **At the point Redis approaches its ceiling** (not yet reached even at 50,000 orgs per the math above, but worth planning for): shard by `org_id` hash across a Redis Cluster, since quota state for any given org is independent of all others and requires no cross-key transactions — a clean sharding boundary.
 5. **Postgres** remains out of the hot path entirely (confirmed idle under load here) and only needs to scale for durability/reporting writes, which are far lower volume than the quota-check path but if we want to persist stats in postgres db we can do asynchronous sync to DB using List Queue on every update of key it is pushed to the list queue from where a worker can sync it to db chronology will be mantained to avoid data inconsistey.
+
+
+### AI Usage
+1. AI was used to generate load-testing script.
+2. AI was used to generate code to speed up the development process.
+3. AI was used to debug issues and bugs during project setup and docker file creations.
+4. AI was used to generate the design document.
