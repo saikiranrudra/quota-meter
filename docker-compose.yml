@@ -1,0 +1,60 @@
+services:
+  # 1. Flask Application
+  web:
+    build: .
+    container_name: flask_app
+    restart: always
+    ports:
+      - "8080:5000" # Exposes Flask to your host machine
+    volumes:
+      - ./app:/app # Mounts your local 'app' folder into the container
+      - ./entrypoint.sh:/entrypoint.sh # Mount entrypoint.sh from project root
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://postgres:user_password@db:5432/quota_meter
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Remove the command/entrypoint override since Dockerfile already has it
+
+    # 2. PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    restart: always
+    ports:
+      - "5432:5432" # Exposes PostgreSQL to your host machine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=user_password
+      - POSTGRES_DB=quota_meter
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 3. Simple Redis Instance
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379" # Optional: Exposes Redis port to host if you want to inspect it
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:

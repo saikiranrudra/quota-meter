@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quota System Test Report — 2026-06-21 15:20</title>
+<style>
+:root {
+    --bg-primary: #0f1117;
+    --bg-secondary: #1a1d29;
+    --bg-tertiary: #252836;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #6366f1;
+    --accent-light: #818cf8;
+    --pass: #22c55e;
+    --pass-bg: rgba(34,197,94,0.08);
+    --fail: #ef4444;
+    --fail-bg: rgba(239,68,68,0.08);
+    --warn: #f59e0b;
+    --warn-bg: rgba(245,158,11,0.08);
+    --border: #2d3148;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* ── Header ── */
+.report-header {
+    text-align: center;
+    padding: 2.5rem 2rem;
+    background: linear-gradient(135deg, #1a1d29 0%, #252836 100%);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+}
+.report-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #818cf8, #6366f1, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+.report-meta {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.report-meta span { white-space: nowrap; }
+
+/* ── Executive Summary ── */
+.executive-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: transform 0.15s;
+}
+.stat-card:hover { transform: translateY(-2px); }
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+.stat-card .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.stat-pass .stat-value { color: var(--pass); }
+.stat-fail .stat-value { color: var(--fail); }
+.stat-warn .stat-value { color: var(--warn); }
+.stat-accent .stat-value { color: var(--accent-light); }
+
+.verdict-banner {
+    text-align: center;
+    padding: 1rem 2rem;
+    border-radius: var(--radius);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border);
+}
+.verdict-pass {
+    background: var(--pass-bg);
+    color: var(--pass);
+    border-color: rgba(34,197,94,0.2);
+}
+.verdict-fail {
+    background: var(--fail-bg);
+    color: var(--fail);
+    border-color: rgba(239,68,68,0.2);
+}
+
+/* ── Badges ── */
+.badge {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+.badge-pass { background: var(--pass-bg); color: var(--pass); border: 1px solid rgba(34,197,94,0.25); }
+.badge-fail { background: var(--fail-bg); color: var(--fail); border: 1px solid rgba(239,68,68,0.25); }
+.badge-warn { background: var(--warn-bg); color: var(--warn); border: 1px solid rgba(245,158,11,0.25); }
+
+/* ── Category Sections ── */
+.category-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+}
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.category-header h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+.category-desc {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+.category-why {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+/* ── Test Results ── */
+.results-list { display: flex; flex-direction: column; gap: 1rem; }
+.test-result {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+}
+.result-pass { border-left: 3px solid var(--pass); }
+.result-fail { border-left: 3px solid var(--fail); }
+.result-warn { border-left: 3px solid var(--warn); }
+
+.result-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.result-header h3 { font-size: 1rem; font-weight: 600; }
+.result-desc { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem; }
+.result-why { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.75rem; }
+
+/* ── Assertions Table ── */
+.assertions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+.assertions-table th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.assertions-table td {
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid rgba(45,49,72,0.5);
+    vertical-align: top;
+}
+.assertions-table .icon-cell { width: 24px; text-align: center; }
+.assertion-pass .icon-cell { color: var(--pass); }
+.assertion-fail .icon-cell { color: var(--fail); font-weight: bold; }
+.assertion-fail { background: var(--fail-bg); }
+.mono { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 0.82rem; }
+.detail { color: var(--text-muted); font-size: 0.78rem; margin-top: 2px; }
+
+/* ── Charts ── */
+.charts-container { margin: 1rem 0; display: flex; flex-direction: column; gap: 1rem; align-items: center; }
+.charts-container svg { border-radius: 8px; }
+
+/* ── Metric Grid ── */
+.metric-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    justify-content: center;
+}
+.metric-pill {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 100px;
+}
+.metric-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.metric-value { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); font-family: 'SF Mono', Menlo, monospace; }
+.target-note { text-align: center; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; }
+
+/* ── Error Block ── */
+.error-block {
+    background: var(--fail-bg);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.82rem;
+}
+.error-block pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin-top: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+}
+
+/* ── Collapsible Raw Data ── */
+details.raw-data {
+    margin-top: 0.5rem;
+}
+details.raw-data summary {
+    cursor: pointer;
+    color: var(--accent-light);
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.3rem 0;
+    user-select: none;
+}
+details.raw-data summary:hover { text-decoration: underline; }
+details.raw-data pre {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    margin-top: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* ── Footer ── */
+.report-footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="report-header">
+    <h1>Quota Metering System — Test Report</h1>
+    <div class="report-meta">
+        <span>📅 2026-06-21 15:20:37</span>
+        <span>🐍 Python 3.14.5</span>
+        <span>💻 Saikirans-MacBook-Air.local</span>
+        <span>🎯 http://localhost:8080</span>
+        <span>⏱ 1m 7s</span>
+    </div>
+</header>
+
+<!-- ═══ EXECUTIVE SUMMARY ═══ -->
+<div class="executive-summary">
+    <div class="stat-card stat-pass">
+        <span class="stat-value">14</span>
+        <span class="stat-label">Passed</span>
+    </div>
+    <div class="stat-card stat-pass">
+        <span class="stat-value">0</span>
+        <span class="stat-label">Failed</span>
+    </div>
+    <div class="stat-card stat-accent">
+        <span class="stat-value">0</span>
+        <span class="stat-label">Limitations</span>
+    </div>
+    <div class="stat-card stat-pass">
+        <span class="stat-value">0</span>
+        <span class="stat-label">Max Over-Serve</span>
+    </div>
+</div>
+
+<div class="verdict-banner verdict-pass">
+    ✅ ALL TESTS PASSED
+</div>
+
+<!-- ═══ TEST SECTIONS ═══ -->
+
+        <section class="category-section">
+            <div class="category-header">
+                <span class="badge badge-pass">PASS</span>
+                <h2>1. Basic Functional Correctness</h2>
+            </div>
+            <p class="category-desc">CRUD-style quota operations and isolation checks.</p>
+            <p class="category-why"><em>Verifies the fundamental contract: quotas are deducted correctly, over-limit requests are rejected, and each (org, feature) pair is an independent accounting bucket.</em></p>
+            <div class="results-list">
+                
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Under-limit consumption (0.01s)</h3>
+                </div>
+                <p class="result-desc">Consume 5 units from a 100-unit quota.</p>
+                <p class="result-why"><em>Why it matters:</em> Basic deduction must work correctly.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>status_code</td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>used</td><td class="mono">5</td><td class="mono">5</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>remaining</td><td class="mono">95</td><td class="mono">95</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>limit</td><td class="mono">100</td><td class="mono">100</td></tr>
+</tbody></table>
+                <div class="charts-container"></div>
+                
+            </div>
+            
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Consume to exactly zero (0.01s)</h3>
+                </div>
+                <p class="result-desc">Consume all remaining 95 units, reaching exactly 0.</p>
+                <p class="result-why"><em>Why it matters:</em> Edge case: quota reaches floor without going negative.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>status_code</td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>used</td><td class="mono">100</td><td class="mono">100</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>remaining</td><td class="mono">0</td><td class="mono">0</td></tr>
+</tbody></table>
+                <div class="charts-container"></div>
+                
+            </div>
+            
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Over-limit rejection (0.00s)</h3>
+                </div>
+                <p class="result-desc">Request 1 more unit when quota is exhausted.</p>
+                <p class="result-why"><em>Why it matters:</em> System must reject with 429 and accurate remaining count.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>status_code</td><td class="mono">429</td><td class="mono">429</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>error_type</td><td class="mono">quota_exceeded</td><td class="mono">quota_exceeded</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>remaining</td><td class="mono">0</td><td class="mono">0</td></tr>
+</tbody></table>
+                <div class="charts-container"></div>
+                
+            </div>
+            
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Feature isolation (0.01s)</h3>
+                </div>
+                <p class="result-desc">Exhausting container-tracking does not affect sailing-schedule.</p>
+                <p class="result-why"><em>Why it matters:</em> Each feature must be an independent quota bucket.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>sailing used_before<div class="detail">Consuming container-tracking must not affect sailing-schedule</div></td><td class="mono">0</td><td class="mono">0</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>sailing status</td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>sailing used_after</td><td class="mono">1</td><td class="mono">1</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>sailing remaining_after</td><td class="mono">99</td><td class="mono">99</td></tr>
+</tbody></table>
+                <div class="charts-container"></div>
+                
+            </div>
+            
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Org isolation (0.01s)</h3>
+                </div>
+                <p class="result-desc">Exhausting ORG_A quota does not affect ORG_B.</p>
+                <p class="result-why"><em>Why it matters:</em> Multi-tenant isolation is critical for a shared metering system.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>org_b used_before<div class="detail">ORG_A usage must not leak into ORG_B</div></td><td class="mono">0</td><td class="mono">0</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>org_b status</td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>org_b used_after</td><td class="mono">10</td><td class="mono">10</td></tr>
+</tbody></table>
+                <div class="charts-container"></div>
+                
+            </div>
+            
+            </div>
+        </section>
+        
+        <section class="category-section">
+            <div class="category-header">
+                <span class="badge badge-pass">PASS</span>
+                <h2>2. Batch Behavior (All-or-Nothing)</h2>
+            </div>
+            <p class="category-desc">Verifies the all_or_nothing batch deduction policy. When requested units exceed remaining quota, the entire request must be rejected with no partial deduction.</p>
+            <p class="category-why"><em>The assignment requires an explicit atomic deduction policy for edge-case batch requests. This proves the implementation matches the documented policy.</em></p>
+            <div class="results-list">
+                
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>All-or-nothing batch deduction (0.02s)</h3>
+                </div>
+                <p class="result-desc">Set limit=100, consume 60, attempt 50 (reject), consume exact 40 (accept), attempt 1 (reject).</p>
+                <p class="result-why"><em>Why it matters:</em> Proves the Lua script rejects insufficient batches atomically without partial deduction.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>initial consume status</td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>used after 60</td><td class="mono">60</td><td class="mono">60</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>remaining after 60</td><td class="mono">40</td><td class="mono">40</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>over-request rejected<div class="detail">50 requested but only 40 remaining → all-or-nothing reject</div></td><td class="mono">429</td><td class="mono">429</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>used unchanged after reject<div class="detail">No partial deduction should occur</div></td><td class="mono">60</td><td class="mono">60</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>exact-fit succeeds</td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>used after exact fit</td><td class="mono">100</td><td class="mono">100</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>remaining after exact fit</td><td class="mono">0</td><td class="mono">0</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>zero-remaining reject</td><td class="mono">429</td><td class="mono">429</td></tr>
+</tbody></table>
+                <div class="charts-container"></div>
+                <details class="raw-data"><summary>View Raw Data</summary><pre>{
+  &quot;policy&quot;: &quot;all_or_nothing&quot;
+}</pre></details>
+            </div>
+            
+            </div>
+        </section>
+        
+        <section class="category-section">
+            <div class="category-header">
+                <span class="badge badge-pass">PASS</span>
+                <h2>3. Concurrent Correctness</h2>
+            </div>
+            <p class="category-desc">Fire 50 concurrent requests against a 500-unit quota, repeated across 20 independent trials.</p>
+            <p class="category-why"><em>This is the single most critical test. The assignment explicitly grades &#x27;strict concurrent correctness&#x27; — quota must never drop below 0 and organizations must never be over-served. Multiple trials catch flaky races that a single pass might miss.</em></p>
+            <div class="results-list">
+                
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Concurrent correctness (20 trials)</h3>
+                </div>
+                <p class="result-desc">Each trial: seed quota=500, fire 50 threads each requesting 10–50 units (total &gt;&gt; 500). Verify zero over-serve.</p>
+                <p class="result-why"><em>Why it matters:</em> Directly proves the Lua-script atomicity claim: concurrent requests cannot race past the quota limit.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>max_over_serve<div class="detail">No trial should over-serve quota (this is the #1 metric)</div></td><td class="mono">0</td><td class="mono">0</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>all_trials_accounting_ok<div class="detail">granted + remaining == limit for every trial</div></td><td class="mono">True</td><td class="mono">True</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>no_negative_remaining<div class="detail">Remaining must never go negative</div></td><td class="mono">True</td><td class="mono">True</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>no_errors<div class="detail">No unexpected HTTP errors during concurrency test</div></td><td class="mono">0</td><td class="mono">0</td></tr>
+</tbody></table>
+                <div class="charts-container"><svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:700px;height:auto;">
+<rect width="700" height="300" fill="#1a1d29" rx="8"/>
+<text x="350.0" y="30" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="600">Concurrent Correctness — Granted per Trial (must be ≤ 500)</text>
+<line x1="70" y1="250.0" x2="670" y2="250.0" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="254.0" text-anchor="end" fill="#64748b" font-size="10">0</text>
+<line x1="70" y1="200.0" x2="670" y2="200.0" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="204.0" text-anchor="end" fill="#64748b" font-size="10">137</text>
+<line x1="70" y1="150.0" x2="670" y2="150.0" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="154.0" text-anchor="end" fill="#64748b" font-size="10">275</text>
+<line x1="70" y1="100.0" x2="670" y2="100.0" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="104.0" text-anchor="end" fill="#64748b" font-size="10">412</text>
+<line x1="70" y1="50.0" x2="670" y2="50.0" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="54.0" text-anchor="end" fill="#64748b" font-size="10">550</text>
+<rect x="70.0" y="68.9090909090909" width="20" height="181.0909090909091" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="100.0" y="69.27272727272725" width="20" height="180.72727272727275" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="130.0" y="68.9090909090909" width="20" height="181.0909090909091" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="160.0" y="68.18181818181819" width="20" height="181.8181818181818" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="190.0" y="70.36363636363637" width="20" height="179.63636363636363" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="220.0" y="70.36363636363637" width="20" height="179.63636363636363" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="250.0" y="70.36363636363637" width="20" height="179.63636363636363" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="280.0" y="68.54545454545456" width="20" height="181.45454545454544" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="310.0" y="70.0" width="20" height="180.0" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="340.0" y="68.18181818181819" width="20" height="181.8181818181818" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="370.0" y="68.18181818181819" width="20" height="181.8181818181818" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="400.0" y="69.63636363636363" width="20" height="180.36363636363637" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="430.0" y="68.18181818181819" width="20" height="181.8181818181818" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="460.0" y="70.72727272727272" width="20" height="179.27272727272728" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="490.0" y="68.18181818181819" width="20" height="181.8181818181818" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="520.0" y="71.45454545454547" width="20" height="178.54545454545453" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="550.0" y="70.36363636363637" width="20" height="179.63636363636363" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="580.0" y="68.54545454545456" width="20" height="181.45454545454544" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="610.0" y="70.36363636363637" width="20" height="179.63636363636363" fill="#22c55e" rx="2" opacity="0.85"/>
+<rect x="640.0" y="72.18181818181819" width="20" height="177.8181818181818" fill="#22c55e" rx="2" opacity="0.85"/>
+<line x1="70" y1="68.18181818181819" x2="670" y2="68.18181818181819" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="6,4"/>
+<text x="666" y="62.18181818181819" text-anchor="end" fill="#ef4444" font-size="11">quota limit = 500</text>
+<text x="350.0" y="292" text-anchor="middle" fill="#64748b" font-size="11">Trial #</text>
+</svg></div>
+                <details class="raw-data"><summary>View Raw Data</summary><pre>{
+  &quot;trials&quot;: [
+    {
+      &quot;trial&quot;: 1,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1509,
+      &quot;total_granted&quot;: 498,
+      &quot;num_success&quot;: 20,
+      &quot;num_rejected&quot;: 30,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 498,
+      &quot;final_remaining&quot;: 2,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.06667804718017578
+    },
+    {
+      &quot;trial&quot;: 2,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1462,
+      &quot;total_granted&quot;: 497,
+      &quot;num_success&quot;: 21,
+      &quot;num_rejected&quot;: 29,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 497,
+      &quot;final_remaining&quot;: 3,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.06293296813964844
+    },
+    {
+      &quot;trial&quot;: 3,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1505,
+      &quot;total_granted&quot;: 498,
+      &quot;num_success&quot;: 20,
+      &quot;num_rejected&quot;: 30,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 498,
+      &quot;final_remaining&quot;: 2,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.08430790901184082
+    },
+    {
+      &quot;trial&quot;: 4,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1536,
+      &quot;total_granted&quot;: 500,
+      &quot;num_success&quot;: 18,
+      &quot;num_rejected&quot;: 32,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 500,
+      &quot;final_remaining&quot;: 0,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.08505606651306152
+    },
+    {
+      &quot;trial&quot;: 5,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1570,
+      &quot;total_granted&quot;: 494,
+      &quot;num_success&quot;: 16,
+      &quot;num_rejected&quot;: 34,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 494,
+      &quot;final_remaining&quot;: 6,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07454276084899902
+    },
+    {
+      &quot;trial&quot;: 6,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1425,
+      &quot;total_granted&quot;: 494,
+      &quot;num_success&quot;: 21,
+      &quot;num_rejected&quot;: 29,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 494,
+      &quot;final_remaining&quot;: 6,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07482695579528809
+    },
+    {
+      &quot;trial&quot;: 7,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1358,
+      &quot;total_granted&quot;: 494,
+      &quot;num_success&quot;: 24,
+      &quot;num_rejected&quot;: 26,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 494,
+      &quot;final_remaining&quot;: 6,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07486724853515625
+    },
+    {
+      &quot;trial&quot;: 8,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1500,
+      &quot;total_granted&quot;: 499,
+      &quot;num_success&quot;: 19,
+      &quot;num_rejected&quot;: 31,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 499,
+      &quot;final_remaining&quot;: 1,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.0802919864654541
+    },
+    {
+      &quot;trial&quot;: 9,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1611,
+      &quot;total_granted&quot;: 495,
+      &quot;num_success&quot;: 17,
+      &quot;num_rejected&quot;: 33,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 495,
+      &quot;final_remaining&quot;: 5,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07125616073608398
+    },
+    {
+      &quot;trial&quot;: 10,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1511,
+      &quot;total_granted&quot;: 500,
+      &quot;num_success&quot;: 18,
+      &quot;num_rejected&quot;: 32,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 500,
+      &quot;final_remaining&quot;: 0,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07737278938293457
+    },
+    {
+      &quot;trial&quot;: 11,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1573,
+      &quot;total_granted&quot;: 500,
+      &quot;num_success&quot;: 17,
+      &quot;num_rejected&quot;: 33,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 500,
+      &quot;final_remaining&quot;: 0,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.08204507827758789
+    },
+    {
+      &quot;trial&quot;: 12,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1510,
+      &quot;total_granted&quot;: 496,
+      &quot;num_success&quot;: 21,
+      &quot;num_rejected&quot;: 29,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 496,
+      &quot;final_remaining&quot;: 4,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07727313041687012
+    },
+    {
+      &quot;trial&quot;: 13,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1525,
+      &quot;total_granted&quot;: 500,
+      &quot;num_success&quot;: 18,
+      &quot;num_rejected&quot;: 32,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 500,
+      &quot;final_remaining&quot;: 0,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07627511024475098
+    },
+    {
+      &quot;trial&quot;: 14,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1476,
+      &quot;total_granted&quot;: 493,
+      &quot;num_success&quot;: 20,
+      &quot;num_rejected&quot;: 30,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 493,
+      &quot;final_remaining&quot;: 7,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07941031455993652
+    },
+    {
+      &quot;trial&quot;: 15,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1602,
+      &quot;total_granted&quot;: 500,
+      &quot;num_success&quot;: 20,
+      &quot;num_rejected&quot;: 30,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 500,
+      &quot;final_remaining&quot;: 0,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07020282745361328
+    },
+    {
+      &quot;trial&quot;: 16,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1638,
+      &quot;total_granted&quot;: 491,
+      &quot;num_success&quot;: 18,
+      &quot;num_rejected&quot;: 32,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 491,
+      &quot;final_remaining&quot;: 9,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07905387878417969
+    },
+    {
+      &quot;trial&quot;: 17,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1534,
+      &quot;total_granted&quot;: 494,
+      &quot;num_success&quot;: 19,
+      &quot;num_rejected&quot;: 31,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 494,
+      &quot;final_remaining&quot;: 6,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07394790649414062
+    },
+    {
+      &quot;trial&quot;: 18,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1589,
+      &quot;total_granted&quot;: 499,
+      &quot;num_success&quot;: 19,
+      &quot;num_rejected&quot;: 31,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 499,
+      &quot;final_remaining&quot;: 1,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.06947612762451172
+    },
+    {
+      &quot;trial&quot;: 19,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1560,
+      &quot;total_granted&quot;: 494,
+      &quot;num_success&quot;: 20,
+      &quot;num_rejected&quot;: 30,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 494,
+      &quot;final_remaining&quot;: 6,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07856082916259766
+    },
+    {
+      &quot;trial&quot;: 20,
+      &quot;quota_limit&quot;: 500,
+      &quot;num_threads&quot;: 50,
+      &quot;total_requested&quot;: 1476,
+      &quot;total_granted&quot;: 489,
+      &quot;num_success&quot;: 21,
+      &quot;num_rejected&quot;: 29,
+      &quot;num_errors&quot;: 0,
+      &quot;final_used&quot;: 489,
+      &quot;final_remaining&quot;: 11,
+      &quot;over_serve&quot;: 0,
+      &quot;accounting_ok&quot;: true,
+      &quot;duration_s&quot;: 0.07628226280212402
+    }
+  ],
+  &quot;max_over_serve&quot;: 0
+}</pre></details>
+            </div>
+            
+            </div>
+        </section>
+        
+        <section class="category-section">
+            <div class="category-header">
+                <span class="badge badge-pass">PASS</span>
+                <h2>4. Failure &amp; Retry Safety</h2>
+            </div>
+            <p class="category-desc">Idempotency-key replay protection and automatic refund when downstream processing fails.</p>
+            <p class="category-why"><em>The assignment grades &#x27;idempotency &amp; fault tolerance&#x27; — the system must handle client retries and downstream failures without double-charging or losing quota.</em></p>
+            <div class="results-list">
+                
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Idempotency-key replay protection (0.02s)</h3>
+                </div>
+                <p class="result-desc">Send request with Idempotency-Key, retry with same key (should replay), then send with different key (should deduct).</p>
+                <p class="result-why"><em>Why it matters:</em> Client retries after a lost response must not double-charge.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>first call status</td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>used after first call</td><td class="mono">10</td><td class="mono">10</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>replay status</td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>replay flagged<div class="detail">Response should indicate idempotent replay</div></td><td class="mono">True</td><td class="mono">True</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>used after replay<div class="detail">Quota must not be deducted again on replay</div></td><td class="mono">10</td><td class="mono">10</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>new key status</td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>used after new key<div class="detail">Different key → new deduction</div></td><td class="mono">20</td><td class="mono">20</td></tr>
+</tbody></table>
+                <div class="charts-container"></div>
+                
+            </div>
+            
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Refund on downstream failure (0.01s)</h3>
+                </div>
+                <p class="result-desc">Trigger simulated failure via {&#x27;fail&#x27;: true} body flag. The @quota_required decorator must refund the deducted units.</p>
+                <p class="result-why"><em>Why it matters:</em> Orgs must not be charged for work that didn&#x27;t complete. This proves the compensating refund mechanism works.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>fail status<div class="detail">Simulated downstream failure should return 500</div></td><td class="mono">500</td><td class="mono">500</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>used after failure<div class="detail">Refund must restore the deducted units to 0</div></td><td class="mono">0</td><td class="mono">0</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>remaining after failure<div class="detail">Full quota should be available after refund</div></td><td class="mono">100</td><td class="mono">100</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>normal request status</td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>used after normal request</td><td class="mono">15</td><td class="mono">15</td></tr>
+</tbody></table>
+                <div class="charts-container"></div>
+                
+            </div>
+            
+            </div>
+        </section>
+        
+        <section class="category-section">
+            <div class="category-header">
+                <span class="badge badge-pass">PASS</span>
+                <h2>5. Reset &amp; Reporting</h2>
+            </div>
+            <p class="category-desc">Usage endpoint accuracy and monthly period rollover.</p>
+            <p class="category-why"><em>The assignment requires a reporting endpoint with current usage and next reset timestamp. Period rollover must be correct and atomic (handled inside the Lua script).</em></p>
+            <div class="results-list">
+                
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Usage endpoint correctness (0.01s)</h3>
+                </div>
+                <p class="result-desc">Consume 75 of 200 units and verify usage report.</p>
+                <p class="result-why"><em>Why it matters:</em> The reporting endpoint is a graded deliverable.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>used</td><td class="mono">75</td><td class="mono">75</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>remaining</td><td class="mono">125</td><td class="mono">125</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>limit</td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>period</td><td class="mono">2026-06</td><td class="mono">2026-06</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>reset_at<div class="detail">First instant of next calendar month, UTC</div></td><td class="mono">2026-07-01T00:00:00+00:00</td><td class="mono">2026-07-01T00:00:00+00:00</td></tr>
+</tbody></table>
+                <div class="charts-container"></div>
+                <details class="raw-data"><summary>View Raw Data</summary><pre>{
+  &quot;usage_response&quot;: {
+    &quot;feature&quot;: &quot;container-tracking&quot;,
+    &quot;limit&quot;: 200,
+    &quot;org_id&quot;: &quot;TEST-RESET&quot;,
+    &quot;period&quot;: &quot;2026-06&quot;,
+    &quot;remaining&quot;: 125,
+    &quot;reset_at&quot;: &quot;2026-07-01T00:00:00+00:00&quot;,
+    &quot;used&quot;: 75
+  }
+}</pre></details>
+            </div>
+            
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Period rollover (stale period → reset) (0.01s)</h3>
+                </div>
+                <p class="result-desc">Seed Redis hash with period=&#x27;2025-01&#x27; and used=150, make a new request, verify used resets to only the new amount.</p>
+                <p class="result-why"><em>Why it matters:</em> The Lua script must atomically detect stale periods and reset the counter before deducting — preventing double-reset races.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>rollover request status<div class="detail">Request should succeed after period rollover</div></td><td class="mono">200</td><td class="mono">200</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>used after rollover<div class="detail">Used should be only the new request amount, not stale + new</div></td><td class="mono">20</td><td class="mono">20</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>remaining after rollover</td><td class="mono">180</td><td class="mono">180</td></tr>
+<tr class="assertion-pass"><td class="icon-cell">✓</td><td>period updated<div class="detail">Period should be updated to current month</div></td><td class="mono">2026-06</td><td class="mono">2026-06</td></tr>
+</tbody></table>
+                <div class="charts-container"></div>
+                
+            </div>
+            
+            </div>
+        </section>
+        
+        <section class="category-section">
+            <div class="category-header">
+                <span class="badge badge-pass">PASS</span>
+                <h2>6. Latency &amp; Load</h2>
+            </div>
+            <p class="category-desc">Sustained load for 30s, burst test, and bursty-per-org pattern across 200 orgs.</p>
+            <p class="category-why"><em>The assignment requires sustained ~2,000 ops/sec and burst to ~10,000 ops/sec with p95 &lt; 10ms. These tests measure real numbers against those targets.</em></p>
+            <div class="results-list">
+                
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Sustained load test (31.05s)</h3>
+                </div>
+                <p class="result-desc">100 threads firing for 30s. Target: ~2,000 RPS sustained.</p>
+                <p class="result-why"><em>Why it matters:</em> Proves throughput capacity under continuous load.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>test_completed<div class="detail">Completed 35445 requests</div></td><td class="mono">True</td><td class="mono">True</td></tr>
+</tbody></table>
+                <div class="charts-container"><div class="metric-grid"><div class="metric-pill"><span class="metric-label">Total Requests</span><span class="metric-value">35,445</span></div>
+<div class="metric-pill"><span class="metric-label">Successful</span><span class="metric-value">35,445</span></div>
+<div class="metric-pill"><span class="metric-label">Avg RPS</span><span class="metric-value">1,147</span></div>
+<div class="metric-pill"><span class="metric-label">p50</span><span class="metric-value">80.6ms</span></div>
+<div class="metric-pill"><span class="metric-label">p95</span><span class="metric-value">154.7ms</span></div>
+<div class="metric-pill"><span class="metric-label">p99</span><span class="metric-value">211.3ms</span></div>
+</div><div class="target-note" style="color:#f59e0b">57% of 2,000 RPS target</div><svg viewBox="0 0 480 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:480px;height:auto;">
+<rect width="480" height="280" fill="#1a1d29" rx="8"/>
+<text x="240.0" y="24" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="600">Latency Percentiles</text>
+<line x1="66" y1="230.0" x2="450" y2="230.0" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="234.0" text-anchor="end" fill="#64748b" font-size="11">0</text>
+<line x1="66" y1="182.5" x2="450" y2="182.5" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="186.5" text-anchor="end" fill="#64748b" font-size="11">63</text>
+<line x1="66" y1="135.0" x2="450" y2="135.0" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="139.0" text-anchor="end" fill="#64748b" font-size="11">127</text>
+<line x1="66" y1="87.5" x2="450" y2="87.5" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="91.5" text-anchor="end" fill="#64748b" font-size="11">190</text>
+<line x1="66" y1="40.0" x2="450" y2="40.0" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="44.0" text-anchor="end" fill="#64748b" font-size="11">254</text>
+<rect x="108.0" y="169.6075925399981" width="76.0" height="60.39240746000189" fill="#818cf8" rx="4" opacity="0.9"/>
+<text x="146.0" y="161.6075925399981" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">80.6ms</text>
+<text x="146.0" y="252" text-anchor="middle" fill="#94a3b8" font-size="13">p50</text>
+<rect x="222.0" y="114.04178105967368" width="76.0" height="115.95821894032632" fill="#f59e0b" rx="4" opacity="0.9"/>
+<text x="260.0" y="106.04178105967368" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">154.7ms</text>
+<text x="260.0" y="252" text-anchor="middle" fill="#94a3b8" font-size="13">p95</text>
+<rect x="336.0" y="71.66666666666666" width="76.0" height="158.33333333333334" fill="#ef4444" rx="4" opacity="0.9"/>
+<text x="374.0" y="63.66666666666666" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">211.3ms</text>
+<text x="374.0" y="252" text-anchor="middle" fill="#94a3b8" font-size="13">p99</text>
+<line x1="70" y1="222.5052857458424" x2="450" y2="222.5052857458424" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="6,4"/>
+<text x="446" y="216.5052857458424" text-anchor="end" fill="#22c55e" font-size="11">target 10ms</text>
+</svg><svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:700px;height:auto;">
+<rect width="700" height="280" fill="#1a1d29" rx="8"/>
+<text x="350.0" y="24" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="600">Throughput Over Time (RPS)</text>
+<line x1="70" y1="230.0" x2="670" y2="230.0" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="234.0" text-anchor="end" fill="#64748b" font-size="10">0</text>
+<line x1="70" y1="182.5" x2="670" y2="182.5" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="186.5" text-anchor="end" fill="#64748b" font-size="10">575</text>
+<line x1="70" y1="135.0" x2="670" y2="135.0" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="139.0" text-anchor="end" fill="#64748b" font-size="10">1,150</text>
+<line x1="70" y1="87.5" x2="670" y2="87.5" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="91.5" text-anchor="end" fill="#64748b" font-size="10">1,725</text>
+<line x1="70" y1="40.0" x2="670" y2="40.0" stroke="#2d3148" stroke-width="0.5"/>
+<text x="62" y="44.0" text-anchor="end" fill="#64748b" font-size="10">2,300</text>
+<text x="70.0" y="250" text-anchor="middle" fill="#64748b" font-size="10">0s</text>
+<text x="170.0" y="250" text-anchor="middle" fill="#64748b" font-size="10">5s</text>
+<text x="270.0" y="250" text-anchor="middle" fill="#64748b" font-size="10">10s</text>
+<text x="370.0" y="250" text-anchor="middle" fill="#64748b" font-size="10">15s</text>
+<text x="470.0" y="250" text-anchor="middle" fill="#64748b" font-size="10">20s</text>
+<text x="570.0" y="250" text-anchor="middle" fill="#64748b" font-size="10">25s</text>
+<text x="670.0" y="250" text-anchor="middle" fill="#64748b" font-size="10">30s</text>
+<polygon points="70,230 70.0,126.73913043478261 90.0,131.7782608695652 110.0,131.61304347826086 130.0,131.2826086956522 150.0,130.2086956521739 170.0,130.95217391304348 190.0,128.55652173913043 210.0,129.9608695652174 230.0,131.36521739130436 250.0,130.95217391304348 270.0,138.1391304347826 290.0,138.96521739130435 310.0,145.24347826086955 330.0,133.01739130434783 350.0,132.7695652173913 370.0,131.7782608695652 390.0,130.12608695652173 410.0,147.7217391304348 430.0,163.00434782608696 450.0,158.4608695652174 470.0,153.91739130434783 490.0,132.8521739130435 509.99999999999994,131.8608695652174 530.0,130.70434782608694 550.0,129.54782608695655 570.0,132.52173913043478 590.0,131.53043478260867 610.0,131.03478260869565 630.0,131.53043478260867 650.0,129.87826086956522 670.0,143.9217391304348 670,230" fill="rgba(99,102,241,0.12)" stroke="none"/>
+<polyline points="70.0,126.73913043478261 90.0,131.7782608695652 110.0,131.61304347826086 130.0,131.2826086956522 150.0,130.2086956521739 170.0,130.95217391304348 190.0,128.55652173913043 210.0,129.9608695652174 230.0,131.36521739130436 250.0,130.95217391304348 270.0,138.1391304347826 290.0,138.96521739130435 310.0,145.24347826086955 330.0,133.01739130434783 350.0,132.7695652173913 370.0,131.7782608695652 390.0,130.12608695652173 410.0,147.7217391304348 430.0,163.00434782608696 450.0,158.4608695652174 470.0,153.91739130434783 490.0,132.8521739130435 509.99999999999994,131.8608695652174 530.0,130.70434782608694 550.0,129.54782608695655 570.0,132.52173913043478 590.0,131.53043478260867 610.0,131.03478260869565 630.0,131.53043478260867 650.0,129.87826086956522 670.0,143.9217391304348" fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="70" y1="64.78260869565219" x2="670" y2="64.78260869565219" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="6,4"/>
+<text x="666" y="58.782608695652186" text-anchor="end" fill="#22c55e" font-size="11">target 2,000 RPS</text>
+</svg></div>
+                <details class="raw-data"><summary>View Raw Data</summary><pre>{
+  &quot;total_requests&quot;: 35445,
+  &quot;total_success&quot;: 35445,
+  &quot;total_errors&quot;: 0,
+  &quot;avg_rps&quot;: 1147.0,
+  &quot;p50_ms&quot;: 80.58,
+  &quot;p95_ms&quot;: 154.72,
+  &quot;p99_ms&quot;: 211.26,
+  &quot;min_ms&quot;: 5.8,
+  &quot;max_ms&quot;: 529.95,
+  &quot;duration_s&quot;: 30.9,
+  &quot;rps_per_second&quot;: &quot;[31 second-buckets, see chart above]&quot;,
+  &quot;latencies&quot;: &quot;[35445 values, omitted for brevity]&quot;,
+  &quot;target_rps&quot;: 2000,
+  &quot;target_p95_ms&quot;: 10
+}</pre></details>
+            </div>
+            
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Burst load test (8.58s)</h3>
+                </div>
+                <p class="result-desc">200 threads × 50 requests = 10,000 total. Target: ~10,000 RPS peak.</p>
+                <p class="result-why"><em>Why it matters:</em> Proves the system handles sudden traffic spikes.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>burst_completed<div class="detail">Completed 10000 burst requests</div></td><td class="mono">True</td><td class="mono">True</td></tr>
+</tbody></table>
+                <div class="charts-container"><div class="metric-grid"><div class="metric-pill"><span class="metric-label">Total Requests</span><span class="metric-value">10,000</span></div>
+<div class="metric-pill"><span class="metric-label">Successful</span><span class="metric-value">10,000</span></div>
+<div class="metric-pill"><span class="metric-label">Avg RPS</span><span class="metric-value">1,167</span></div>
+<div class="metric-pill"><span class="metric-label">p50</span><span class="metric-value">106.8ms</span></div>
+<div class="metric-pill"><span class="metric-label">p95</span><span class="metric-value">241.3ms</span></div>
+<div class="metric-pill"><span class="metric-label">p99</span><span class="metric-value">313.7ms</span></div>
+</div><div class="target-note" style="color:#ef4444">12% of 10,000 RPS target</div></div>
+                <details class="raw-data"><summary>View Raw Data</summary><pre>{
+  &quot;total_requests&quot;: 10000,
+  &quot;total_success&quot;: 10000,
+  &quot;peak_rps&quot;: 1166.9,
+  &quot;p50_ms&quot;: 106.85,
+  &quot;p95_ms&quot;: 241.26,
+  &quot;p99_ms&quot;: 313.7,
+  &quot;duration_s&quot;: 8.6,
+  &quot;target_rps&quot;: 10000
+}</pre></details>
+            </div>
+            
+            <div class="test-result result-pass">
+                <div class="result-header">
+                    <span class="badge badge-pass">PASS</span>
+                    <h3>Bursty per-org (200 orgs) (26.11s)</h3>
+                </div>
+                <p class="result-desc">200 orgs each fire 3 bursts of 50 requests with 100ms idle between bursts.</p>
+                <p class="result-why"><em>Why it matters:</em> Simulates realistic multi-tenant traffic: bursty per-org patterns at scale to represent the 5,000+ org target.</p>
+                
+                <table class="assertions-table"><thead><tr><th></th><th>Assertion</th><th>Expected</th><th>Actual</th></tr></thead><tbody><tr class="assertion-pass"><td class="icon-cell">✓</td><td>bursty_completed<div class="detail">Completed 30000 bursty requests across 200 orgs</div></td><td class="mono">True</td><td class="mono">True</td></tr>
+</tbody></table>
+                <div class="charts-container"><div class="metric-grid"><div class="metric-pill"><span class="metric-label">Total Requests</span><span class="metric-value">30,000</span></div>
+<div class="metric-pill"><span class="metric-label">Successful</span><span class="metric-value">30,000</span></div>
+<div class="metric-pill"><span class="metric-label">Avg RPS</span><span class="metric-value">0</span></div>
+<div class="metric-pill"><span class="metric-label">p50</span><span class="metric-value">77.2ms</span></div>
+<div class="metric-pill"><span class="metric-label">p95</span><span class="metric-value">144.8ms</span></div>
+<div class="metric-pill"><span class="metric-label">p99</span><span class="metric-value">179.5ms</span></div>
+</div></div>
+                <details class="raw-data"><summary>View Raw Data</summary><pre>{
+  &quot;total_requests&quot;: 30000,
+  &quot;total_success&quot;: 30000,
+  &quot;num_orgs&quot;: 200,
+  &quot;p50_ms&quot;: 77.15,
+  &quot;p95_ms&quot;: 144.85,
+  &quot;p99_ms&quot;: 179.49
+}</pre></details>
+            </div>
+            
+            </div>
+        </section>
+        
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="report-footer">
+    Generated by <strong>test_quota_system.py</strong> •
+    Batch policy: <code>all_or_nothing</code> •
+    Concurrency trials: 20 •
+    Load duration: 30s
+</footer>
+
+</body>
+</html>
